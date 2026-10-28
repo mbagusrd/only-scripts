@@ -6,7 +6,8 @@ Kumpulan skrip utilitas untuk Ubuntu server, database, dan SSH key management.
 
 ```text
 ├── mysql/
-│   └── mysql_sync.sh           # Sinkronisasi / backup database MySQL
+│   ├── mysql_sync.sh           # Sinkronisasi / backup database MySQL
+│   └── mysql_user_manager.sh   # Manajemen user dan privileges MySQL
 ├── ssh/
 │   ├── generate_ssh_key.sh     # Interactive SSH key generator (ed25519)
 │   └── simple_ssh_gen.sh       # CLI SSH key generator (ed25519)
@@ -46,6 +47,13 @@ Skrip backup dan sinkronisasi database MySQL (remote/local) via `mysqldump` dan 
 
 ```bash
 ./mysql/mysql_sync.sh
+```
+
+### `mysql_user_manager.sh`
+Skrip interaktif manajemen user MySQL (list, create user, change password, rename/host scope, grant privileges, show grants, drop user) dengan integrasi profil koneksi lokal.
+
+```bash
+./mysql/mysql_user_manager.sh
 ```
 
 ---
