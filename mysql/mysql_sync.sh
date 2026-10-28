@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ponytail: simpan profil di file flat-text plain ~/.mysql_sync_profiles; upgrade ke secret store jika butuh enkripsi
+# ponytail: simpan profil di file flat-text plain di direktori script; upgrade ke secret store jika butuh enkripsi
 
-PROFILE_FILE="$HOME/.mysql_sync_profiles"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROFILE_FILE="$SCRIPT_DIR/.mysql_sync_profiles"
 touch "$PROFILE_FILE"
 chmod 600 "$PROFILE_FILE"
 
