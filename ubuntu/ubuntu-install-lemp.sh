@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ponytail: skip multi-distro & ppa custom repo. Pakai default apt Ubuntu/Debian.
+# ponytail: pakai PPA ondrej/php untuk Ubuntu/Debian multi-versi PHP.
 
 [[ $EUID -ne 0 ]] && echo "Jalankan pakai sudo/root." && exit 1
 
@@ -46,21 +46,26 @@ if [[ "$INS_NGINX" =~ ^[Yy]$ ]]; then
 fi
 
 if [[ "$INS_PHP" =~ ^[Yy]$ ]]; then
-    # Versi default distro Ubuntu/Debian repo
-    read -rp "Pilih versi PHP (tekan Enter untuk default repo): " PHP_VER
-    if [[ -n "$PHP_VER" ]]; then
-        PKG_PREFIX="php${PHP_VER}"
-    else
-        PKG_PREFIX="php"
+    # Tambah PPA ondrej/php untuk support multi-versi PHP (8.2, 8.3, 8.4)
+    if ! grep -rq "ondrej/php" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
+        apt-get install -y software-properties-common
+        add-apt-repository -y ppa:ondrej/php
+        apt-get update
     fi
+
+    # Versi default 8.3 (aman Laravel 11+)
+    read -rp "Pilih versi PHP (contoh: 8.2 / 8.3 / 8.4, default 8.3): " PHP_VER
+    PHP_VER=${PHP_VER:-8.3}
+    PKG_PREFIX="php${PHP_VER}"
 
     apt-get install -y "${PKG_PREFIX}-fpm" "${PKG_PREFIX}-cli" "${PKG_PREFIX}-mysql" \
                        "${PKG_PREFIX}-curl" "${PKG_PREFIX}-gd" "${PKG_PREFIX}-mbstring" \
-                       "${PKG_PREFIX}-xml" "${PKG_PREFIX}-zip"
+                       "${PKG_PREFIX}-xml" "${PKG_PREFIX}-zip" "${PKG_PREFIX}-bcmath" \
+                       "${PKG_PREFIX}-sqlite3" "${PKG_PREFIX}-intl" "${PKG_PREFIX}-redis"
     
-    SYSTEMD_PHP=$(systemctl list-unit-files | grep -oE "php[0-9.]*-fpm" | head -n 1 || echo "php-fpm")
+    SYSTEMD_PHP="php${PHP_VER}-fpm"
     systemctl enable --now "$SYSTEMD_PHP"
-    echo "[OK] PHP-FPM terpasang."
+    echo "[OK] PHP-FPM ${PHP_VER} terpasang."
 fi
 
 if [[ "$INS_COMPOSER" =~ ^[Yy]$ ]]; then
