@@ -61,6 +61,7 @@ if [ "$USE_SAVED" -eq 0 ]; then
 fi
 
 CONN_ARGS=()
+USE_SUDO=""
 if [ -n "$DB_PASS" ]; then
     export MYSQL_PWD="$DB_PASS"
     CONN_ARGS=(-h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER")
