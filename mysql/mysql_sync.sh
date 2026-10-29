@@ -17,25 +17,46 @@ read -rp "Pilihan aksi [1/2]: " ACT
 USE_SAVED=0
 PROFILES=()
 if [ -s "$PROFILE_FILE" ]; then
-    echo ""
-    echo "Pilih koneksi:"
-    echo "0) Buat koneksi baru"
-    IDX=1
-    while IFS= read -r line || [ -n "$line" ]; do
-        [ -z "$line" ] && continue
-        PROFILES+=("$line")
-        IFS='|' read -r P_NAME P_HOST P_PORT P_USER P_PASS <<< "$line"
-        echo "$IDX) $P_NAME ($P_USER@$P_HOST:$P_PORT)"
-        IDX=$((IDX + 1))
-    done < "$PROFILE_FILE"
+    while true; do
+        PROFILES=()
+        echo ""
+        echo "Pilih koneksi:"
+        echo "0) Buat koneksi baru"
+        IDX=1
+        while IFS= read -r line || [ -n "$line" ]; do
+            [ -z "$line" ] && continue
+            PROFILES+=("$line")
+            IFS='|' read -r P_NAME P_HOST P_PORT P_USER P_PASS <<< "$line"
+            echo "$IDX) $P_NAME ($P_USER@$P_HOST:$P_PORT)"
+            IDX=$((IDX + 1))
+        done < "$PROFILE_FILE"
+        echo "d) Hapus profil"
 
-    read -rp "Pilihan koneksi [0]: " CONN_OPT
-    CONN_OPT=${CONN_OPT:-0}
-    if [ "$CONN_OPT" -gt 0 ] && [ "$CONN_OPT" -le "${#PROFILES[@]}" ]; then
-        SELECTED="${PROFILES[$((CONN_OPT - 1))]}"
-        IFS='|' read -r _ DB_HOST DB_PORT DB_USER DB_PASS <<< "$SELECTED"
-        USE_SAVED=1
-    fi
+        read -rp "Pilihan koneksi [0]: " CONN_OPT
+        CONN_OPT=${CONN_OPT:-0}
+
+        if [ "$CONN_OPT" = "d" ] || [ "$CONN_OPT" = "D" ]; then
+            read -rp "Pilih nomor profil yang ingin dihapus [1-${#PROFILES[@]}]: " DEL_OPT
+            if [ -n "$DEL_OPT" ] && [ "$DEL_OPT" -gt 0 ] && [ "$DEL_OPT" -le "${#PROFILES[@]}" ] 2>/dev/null; then
+                DEL_IDX=$((DEL_OPT - 1))
+                IFS='|' read -r DEL_NAME _ <<< "${PROFILES[$DEL_IDX]}"
+                unset 'PROFILES[DEL_IDX]'
+                printf "%s\n" "${PROFILES[@]}" > "$PROFILE_FILE"
+                echo "Profil '$DEL_NAME' berhasil dihapus."
+                [ ! -s "$PROFILE_FILE" ] && break
+            else
+                echo "Pilihan tidak valid."
+            fi
+            continue
+        fi
+
+        if [ "$CONN_OPT" -gt 0 ] && [ "$CONN_OPT" -le "${#PROFILES[@]}" ] 2>/dev/null; then
+            SELECTED="${PROFILES[$((CONN_OPT - 1))]}"
+            IFS='|' read -r _ DB_HOST DB_PORT DB_USER DB_PASS <<< "$SELECTED"
+            USE_SAVED=1
+        fi
+        break
+    done
 fi
 
 if [ "$USE_SAVED" -eq 0 ]; then
